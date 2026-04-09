@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('no_id')->unique();
             $table->string('name');
-            $table->enum('kelas', ['X', 'XI', 'XII'])->default('X');
+            $table->enum('kelas', ['10', '11', '12'])->default('10');
             $table->enum('jurusan', ['RPL', 'TKJ', 'DKV', 'PSPT'])->default('RPL');
             $table->string('username')->unique();
             $table->string('email')->unique();
@@ -27,6 +27,8 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->timestamp('email_verified_at')->nullable();
+
+                $table->index(['name', 'kelas', 'jurusan', 'role', 'is_active']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

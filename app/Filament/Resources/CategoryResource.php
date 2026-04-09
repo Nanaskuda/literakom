@@ -16,6 +16,10 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
+    protected static ?string $modelLabel = 'Kategori';
+
+    protected static ?string $pluralLabel = 'Kategori';
+
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
     protected static ?string $navigationGroup = 'Master Data';
@@ -48,17 +52,20 @@ class CategoryResource extends Resource
                     ->columnSpanFull(),
 
                 Forms\Components\ColorPicker::make('color')
+                    ->label('Warna')
                     ->hex(),
 
                 Forms\Components\Toggle::make('is_active')
-                ->default(true)
-                ->label('Aktif'),
+                ->label('Aktif')
+                ->default(true),
                 ])->columns(2),
             ]);
     }
 
     public static function table(Table $table): Table
     {
+
+
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('nama')
@@ -77,7 +84,8 @@ class CategoryResource extends Resource
 
                 Tables\Columns\TextColumn::make('books_count')
                     ->counts('books')
-                    ->label('Jumlah Buku'),
+                    ->label('Jumlah Buku')
+                    ->alignCenter(),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
@@ -97,13 +105,12 @@ class CategoryResource extends Resource
                  Tables\Filters\TernaryFilter::make('is_active')->label('Status Aktif'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah Kategori'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus Kategori')
+                    ->modalHeading(fn ($record) => "Hapus Kategori {$record->nama}?")
+                    ->modalDescription('Apakah Anda yakin ingin menghapus kategori ini? Semua buku yang terkait dengan kategori ini tidak akan terhapus, tetapi akan kehilangan kategorinya.'),
             ]);
     }
 

@@ -10,6 +10,10 @@ class ListBooks extends ListRecords
 {
     protected static string $resource = BookResource::class;
 
+    protected static ?string $breadcrumb = 'Daftar Buku';
+
+    protected static ?string $title = 'Daftar Buku';
+
     protected function getHeaderActions(): array
     {
         return [

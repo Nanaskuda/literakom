@@ -10,6 +10,10 @@ class ListCategories extends ListRecords
 {
     protected static string $resource = CategoryResource::class;
 
+    protected static ?string $breadcrumb = 'Daftar Kategori';
+
+    protected static ?string $title = 'Daftar Kategori';
+
     protected function getHeaderActions(): array
     {
         return [

@@ -20,12 +20,12 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             BookSeeder::class,
         ]);
-        
+
     // ─── Admin ────────────────────────────────────────────
     User::create([
         'no_id'    => 'LIB-0000',
         'name'     => 'Administrator',
-        'kelas'    => 'X',
+        'kelas'    => '12',
         'jurusan'  => 'RPL',
         'username' => 'admin',
         'email'    => 'admin@digiLitera.id',
@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
     User::create([
         'no_id'    => 'LIB-0002',
         'name'     => 'pri',
-        'kelas'    => 'X',
+        'kelas'    => '10',
         'jurusan'  => 'RPL',
         'username' => 'Apri',
         'email'    => 'apri@digiLitera.id',

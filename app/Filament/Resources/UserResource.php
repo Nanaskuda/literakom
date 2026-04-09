@@ -44,7 +44,7 @@ class UserResource extends Resource
                     ->maxLength(255),
 
                 Forms\Components\Select::make('kelas')
-                    ->options(['X', 'XI', 'XII'])
+                    ->options(['10', '11', '12'])
                     ->required(),
 
                 Forms\Components\Select::make('jurusan')
@@ -98,18 +98,13 @@ public static function table(Table $table): Table
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('kelas')
-                    ->searchable(),
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('jurusan')
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('username')
                     ->searchable(),
-
-                Tables\Columns\TextColumn::make('role')
-                    ->colors([
-                        'primary'  => 'admin',
-                        'success' => 'member',
-                    ])
-                    ->badge()
-                    ->label('Role'),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()

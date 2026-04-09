@@ -10,12 +10,13 @@ class ListUsers extends ListRecords
 {
     protected static string $resource = UserResource::class;
 
+    protected static ?string $breadcrumb = 'Daftar Member';
+    protected static ?string $title = 'Daftar Member';
+
     protected function getHeaderActions(): array
     {
         return [
-            // Actions\CreateAction::make()
-            //     ->label('Tambah Member')
-            //     ->icon('heroicon-o-plus'),
+            //
         ];
     }
 }

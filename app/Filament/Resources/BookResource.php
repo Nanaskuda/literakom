@@ -16,6 +16,10 @@ class BookResource extends Resource
 {
     protected static ?string $model = Book::class;
 
+    protected static ?string $modelLabel = 'Buku';
+
+    protected static ?string $pluralLabel = 'Buku';
+
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
 
     protected static ?string $navigationLabel = 'Buku';
@@ -248,12 +252,14 @@ class BookResource extends Resource
 
                 Tables\Columns\TextColumn::make('tahun_terbit')
                     ->label('Tahun Terbit')
-                    ->sortable(),
+                    ->sortable()
+                    ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('stok')
                     ->label('Stok')
                     ->sortable()
-                    ->color(fn($record) => $record->stok > 0 ? 'success' : 'danger'),
+                    ->color(fn($record) => $record->stok > 0 ? 'success' : 'danger')
+                    ->alignCenter(),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
@@ -281,17 +287,38 @@ class BookResource extends Resource
                 Tables\Filters\Filter::make('stok_habis')
                     ->label('Stok Habis')
                     ->query(fn($query) => $query->where('stok', 0)),
+
+                Tables\Filters\TrashedFilter::make()
+                ->label('Status Arsip')
+                ->options([
+                    'onlyTrashed' => 'Hanya Arsip',
+                    'withTrashed' => 'Termasuk Arsip',
+                    'withoutTrashed' => 'Tanpa Arsip',
+                ]),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\ViewAction::make()
+                ->label('Pratinjau'),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah Buku')
+                    ->icon('heroicon-o-pencil'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Arsipkan Buku')
+                    ->modalHeading(fn ($record) => "Arsipkan Buku {$record->judul}?")
+                    ->modalDescription('Apakah Anda yakin ingin mengarsipkan buku ini?')
+                    ->successNotificationTitle('Buku Diarsipkan'),
+                Tables\Actions\ForceDeleteAction::make()
+                    ->label('Hapus Permanen')
+                    ->modalHeading(fn ($record) => "Hapus Permanen Buku {$record->judul}?")
+                    ->modalDescription('Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin ingin menghapus buku ini secara permanen?')
+                    ->requiresConfirmation(),
+                Tables\Actions\RestoreAction::make()
+                    ->label('Pulihkan Buku')
+                    ->modalHeading(fn ($record) => "Pulihkan Buku {$record->judul}?")
+                    ->modalDescription('Apakah Anda yakin ingin memulihkan buku ini?')
+                    ->successNotificationTitle('Buku Dipulihkan'),
             ]);
+
     }
 
     public static function getRelations(): array

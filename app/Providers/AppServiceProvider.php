@@ -20,5 +20,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \App\Models\Borrowing::observe(\App\Observers\BorrowingObserver::class);
+        
     }
 }
