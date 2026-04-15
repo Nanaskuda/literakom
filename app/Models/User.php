@@ -77,11 +77,10 @@ class User extends Authenticatable implements FilamentUser
             });
             }
 
-    const ROLE_ADMIN = 'admin';
 
     public function isAdmin(): bool
     {
-        return $this->role === self::ROLE_ADMIN;
+       return $this->role === 'admin';
     }
 
     public function canAccessPanel(Panel $panel): bool

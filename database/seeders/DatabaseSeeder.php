@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
         'kelas'    => '10',
         'jurusan'  => 'RPL',
         'username' => 'Apri',
-        'email'    => 'apri@digiLitera.id',
+        'email'    => 'apri@gmail.com',
         'password' => bcrypt('apri123'),
         'role'     => 'member',
 

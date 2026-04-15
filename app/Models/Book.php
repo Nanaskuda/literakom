@@ -85,4 +85,11 @@ class Book extends Model
     {
         return $query->withCount('borrowings')->orderBy('borrowings_count', 'desc');
     }
+
+    public function scopeByKategori($query, string $slug)
+    {
+        return $query->whereHas('category', fn($q) =>
+            $q->where('slug', $slug)
+        );
+    }
 }
