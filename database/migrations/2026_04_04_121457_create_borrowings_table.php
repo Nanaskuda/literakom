@@ -18,8 +18,8 @@ return new class extends Migration
             $table->date('tanggal_pinjam');
             $table->date('tanggal_kembali');
             $table->date('tanggal_dikembalikan')->nullable();
-            $table->enum('status', ['dipinjam', 'dikembalikan', 'terlambat'])->default('dipinjam');
-            $table->text('catatan')->nullable();
+            $table->enum('status', ['PENDING', 'DIPINJAM', 'DIKEMBALIKAN', 'DITOLAK'])->default('PENDING');
+
             $table->timestamps();
 
             $table->index(['user_id', 'book_id', 'tanggal_pinjam', 'status']);

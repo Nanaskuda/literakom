@@ -13,7 +13,7 @@ class BorrowingPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->role === 'admin';
     }
 
     /**
@@ -21,7 +21,7 @@ class BorrowingPolicy
      */
     public function view(User $user, Borrowing $borrowing): bool
     {
-        return $user->isAdmin();
+        return $user->role === 'admin';
     }
 
     /**
@@ -29,7 +29,7 @@ class BorrowingPolicy
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->role === 'admin';
     }
 
     /**
@@ -37,7 +37,7 @@ class BorrowingPolicy
      */
     public function update(User $user, Borrowing $borrowing): bool
     {
-        return $user->isAdmin();
+        return $user->role === 'admin';
     }
 
     /**
@@ -45,7 +45,7 @@ class BorrowingPolicy
      */
     public function delete(User $user, Borrowing $borrowing): bool
     {
-        return $user->isAdmin();
+        return $user->role === 'admin';
     }
 
     /**
@@ -53,7 +53,7 @@ class BorrowingPolicy
      */
     public function restore(User $user, Borrowing $borrowing): bool
     {
-        return $user->isAdmin();
+        return $user->role === 'admin';
     }
 
     /**
@@ -61,6 +61,6 @@ class BorrowingPolicy
      */
     public function forceDelete(User $user, Borrowing $borrowing): bool
     {
-        return $user->isAdmin();
+        return $user->role === 'admin';
     }
 }

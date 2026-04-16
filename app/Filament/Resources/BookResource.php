@@ -196,6 +196,7 @@ class BookResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->deferLoading()
             ->columns([
                 Tables\Columns\ImageColumn::make('cover')
                     ->width(50)

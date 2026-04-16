@@ -75,8 +75,9 @@ class BorrowingResource extends Resource
                     ->required(),
 
                 Forms\Components\DatePicker::make('tanggal_kembali')
-                    ->default(now()->addDays(7))
-                    ->required(),
+                    ->default(now())
+                    ->required()
+                    ->after('tanggal_pinjam'),
 
                 Forms\Components\DatePicker::make('tanggal_dikembalikan')
                     ->nullable(),
@@ -89,16 +90,15 @@ class BorrowingResource extends Resource
                     ])
                     ->default('dipinjam')
                     ->required(),
-
-                Forms\Components\Textarea::make('catatan')
-                    ->columnSpanFull(),
             ])->columns(2),
         ]);
     }
 
     public static function table(Table $table): Table
     {
+
         return $table
+        ->deferLoading()
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Member')
@@ -152,21 +152,41 @@ class BorrowingResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\Action::make('kembalikan')
-                    ->label('Tandai Dikembalikan')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    ->visible(fn ($record) => $record->status === 'dipinjam' || $record->status === 'terlambat')
-                    ->requiresConfirmation()
-                    ->action(function ($record) {
-                        DB::transaction(function () use ($record) {
-                            $record->update([
-                                'status'               => 'dikembalikan',
-                                'tanggal_dikembalikan' => Carbon::today(),
-                            ]);
-                            $record->book->increment('stok');
-                        });
-                    }),
+                Tables\Actions\Action::make('approve')
+        ->label('Approve')
+        ->color('success')
+        ->icon('heroicon-o-check-circle')
+        ->visible(fn ($record) => $record->status === 'PENDING')
+        ->action(function ($record) {
+            DB::transaction(function () use ($record) {
+                // 1. Kurangi stok buku
+                $record->book->decrement('stock');
+
+                // 2. Update status peminjaman
+                $record->update([
+                    'status' => 'DIPINJAM',
+                    'borrowed_at' => now(),
+                ]);
+            });
+        }),
+                Tables\Actions\Action::make('return')
+                ->label('Konfirmasi Kembali')
+                ->color('info')
+                ->icon('heroicon-o-arrow-path')
+                ->visible(fn ($record) => $record->status === 'DIPINJAM')
+                ->action(function ($record) {
+                    DB::transaction(function () use ($record) {
+                        // 1. Tambah stok buku kembali
+                        $record->book->increment('stock');
+
+                        // 2. Update status
+                        $record->update([
+                            'status' => 'DIKEMBALIKAN',
+                'returned_at' => now(),
+            ]);
+        });
+    })
+    ->requiresConfirmation(),
             ]);
     }
 

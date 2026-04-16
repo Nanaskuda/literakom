@@ -46,4 +46,6 @@ class Borrowing extends Model
     public function sisaHari(){
         return Carbon::today()->diffInDays($this->tanggal_kembali, false);
     }
+
+    
 }

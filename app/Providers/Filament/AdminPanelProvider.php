@@ -28,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('Literakom')
-            ->login()
+            ->login(LoginCustom::class)
             ->colors([
                 'primary' => Color::Blue,
             ])

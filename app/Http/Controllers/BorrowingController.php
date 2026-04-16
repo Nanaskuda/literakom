@@ -13,6 +13,23 @@ use Carbon\Carbon;
 class BorrowingController extends Controller
 {
 
+    public function ajukanPinjam($bookId)
+{
+    $book = Book::findOrFail($bookId);
+
+    if ($book->stok <= 0) {
+        session()->flash('error', 'Stok buku habis!');
+        return;
+    }
+
+    Borrowing::create([
+        'user_id' => Auth::id(),
+        'book_id' => $bookId,
+        'status' => 'PENDING',
+    ]);
+
+    session()->flash('success', 'Pengajuan berhasil, menunggu persetujuan admin.');
+}
     public function store(Request $request, Book $book)
     {
         if (!Auth::check()) {
@@ -46,7 +63,7 @@ class BorrowingController extends Controller
         return redirect()
             ->route('books.show', $book)
             ->with('success', 'Buku berhasil dipinjam! Harap kembalikan dalam 7 hari.');
-    }
+            }
 
     public function kembalikan(Borrowing $borrowing)
     {
@@ -75,4 +92,5 @@ class BorrowingController extends Controller
 
         return view('borrowings.riwayat', compact('borrowings'));
     }
+
 }
