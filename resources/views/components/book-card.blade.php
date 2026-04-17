@@ -1,4 +1,4 @@
-{{-- resources/views/components/book-card.blade.php --}}
+
 <a href="{{ route('books.show', $book) }}"
    class="group bg-white rounded-2xl overflow-hidden transition-all duration-300
           hover:-translate-y-1.5 hover:shadow-xl flex flex-col"

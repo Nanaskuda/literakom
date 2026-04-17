@@ -15,14 +15,18 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('book_id')->constrained('books')->cascadeOnDelete();
-            $table->date('tanggal_pinjam');
-            $table->date('tanggal_kembali');
+            $table->date('tanggal_pinjam')->nullable();
+            $table->date('tanggal_kembali')->nullable();
             $table->date('tanggal_dikembalikan')->nullable();
-            $table->enum('status', ['PENDING', 'DIPINJAM', 'DIKEMBALIKAN', 'DITOLAK'])->default('PENDING');
+            $table->enum('status', ['pending', 'dipinjam', 'ditolak', 'dikembalikan'])->default('pending');
+            $table->text('catatan')->nullable();
+            $table->text('catatan_admin')->nullable();
+            $table->timestamp('approved_at')->nullable();
+            $table->timestamp('rejected_at')->nullable();
 
             $table->timestamps();
 
-            $table->index(['user_id', 'book_id', 'tanggal_pinjam', 'status']);
+            $table->index(['user_id', 'book_id', 'status']);
         });
     }
 

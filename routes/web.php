@@ -18,7 +18,7 @@ Route::get('/kontak', fn() => view('contact'))->name('kontak');
 // Route Member
 Route::middleware('auth')->group(function () {
     Route::post('/pinjam/{book}', [BorrowingController::class, 'store'])->name('borrowings.store');
-    Route::patch('/kembalikan/{Borrowing}', [BorrowingController::class, 'kembalikan'])->name('borrowings.kembalikan');
+    Route::patch('/kembalikan/{Borrowing}', [BorrowingController::class, 'ajukanKembali'])->name('borrowings.ajukanKembali');
     Route::get('/riwayat', [BorrowingController::class, 'riwayat'])->name('borrowings.riwayat');
 
     Route::post('/favorit/{book}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');

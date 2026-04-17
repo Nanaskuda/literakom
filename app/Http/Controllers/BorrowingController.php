@@ -9,80 +9,100 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-
 class BorrowingController extends Controller
 {
-
-    public function ajukanPinjam($bookId)
-{
-    $book = Book::findOrFail($bookId);
-
-    if ($book->stok <= 0) {
-        session()->flash('error', 'Stok buku habis!');
-        return;
-    }
-
-    Borrowing::create([
-        'user_id' => Auth::id(),
-        'book_id' => $bookId,
-        'status' => 'PENDING',
-    ]);
-
-    session()->flash('success', 'Pengajuan berhasil, menunggu persetujuan admin.');
-}
     public function store(Request $request, Book $book)
     {
+
         if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Login terlebih dahulu untuk meminjam buku.');
+            return redirect()->route('login')
+                ->with('error', 'Login dulu bro.');
         }
 
         if (!$book->isAvailable()) {
-            return back()->with('error', 'Maaf, buku sedang tidak tersedia.');
+            return back()->with('error', 'Buku tidak tersedia.');
         }
 
-        $sudahPinjam = Borrowing::where('user_id', Auth::id())
+        // VALIDASI DURASI
+        $request->validate([
+            'durasi' => 'required|integer|min:1|max:7',
+        ]);
+
+        // CEK DUPLIKASI
+        $exists = Borrowing::where('user_id', Auth::id())
             ->where('book_id', $book->id)
-            ->where('status', 'dipinjam')
+            ->whereIn('status', [
+                Borrowing::STATUS_PENDING,
+                Borrowing::STATUS_DIPINJAM,
+            ])
             ->exists();
 
-        if ($sudahPinjam) {
-            return back()->with('error', 'Kamu sudah meminjam buku ini.');
+        if ($exists) {
+            return back()->with('error', 'Kamu sudah mengajukan atau sedang meminjam buku ini.');
         }
 
-        DB::transaction(function () use ($book) {
+        DB::transaction(function () use ($book, $request) {
             Borrowing::create([
-                'user_id'         => Auth::id(),
-                'book_id'         => $book->id,
-                'tanggal_pinjam'  => Carbon::today(),
-                'tanggal_kembali' => Carbon::today()->addDays(7),
-                'status'          => 'dipinjam',
+                'user_id' => Auth::id(),
+                'book_id' => $book->id,
+                'status' => Borrowing::STATUS_PENDING,
+                'catatan' => 'Durasi pinjam: ' . $request->durasi . ' hari',
             ]);
-            $book->decrement('stok');
         });
 
-        return redirect()
-            ->route('books.show', $book)
-            ->with('success', 'Buku berhasil dipinjam! Harap kembalikan dalam 7 hari.');
-            }
-
-    public function kembalikan(Borrowing $borrowing)
-    {
-        abort_if($borrowing->user_id !== Auth::id(), 403);
-
-        DB::transaction(function () use ($borrowing) {
-            $borrowing->update([
-                'status'               => 'dikembalikan',
-                'tanggal_dikembalikan' => Carbon::today(),
-            ]);
-            $borrowing->book()->increment('stok');
-        });
-
-        return redirect()
-            ->route('books.show', $borrowing->book)
-            ->with('success', 'Buku berhasil dikembalikan. Terima kasih!');
+        return back()->with('success', 'Pengajuan dikirim. Tunggu admin.');
     }
 
-    // ─── RIWAYAT (bug fixed: $borrowing → $borrowings) ───────────────
+    // ─── APPROVE (biasanya dari Filament)
+    public function approve(Borrowing $borrowing, int $durasi)
+    {
+        
+        DB::transaction(function () use ($borrowing, $durasi) {
+
+            $tanggalPinjam = Carbon::today();
+            $tanggalKembali = $tanggalPinjam->copy()->addDays($durasi);
+
+            $borrowing->update([
+                'status' => Borrowing::STATUS_DIPINJAM,
+                'tanggal_pinjam' => $tanggalPinjam,
+                'tanggal_kembali' => $tanggalKembali,
+                'approved_at' => now(),
+            ]);
+        });
+    }
+
+    // ─── REJECT
+    public function reject(Borrowing $borrowing)
+    {
+        $borrowing->update([
+            'status' => Borrowing::STATUS_DITOLAK,
+            'rejected_at' => now(),
+        ]);
+    }
+
+    // ─── AJUKAN KEMBALI
+    public function ajukanKembali(Borrowing $borrowing)
+    {
+        abort_if($borrowing->user_id !== Auth::id(), 403);
+        abort_if(!$borrowing->isDipinjam(), 400);
+
+        $borrowing->update([
+            'catatan' => 'Pengajuan pengembalian pada ' . now()->format('d M Y H:i'),
+        ]);
+
+        return back()->with('success', 'Ajukan pengembalian berhasil.');
+    }
+
+    // ─── KONFIRMASI ADMIN
+    public function konfirmasiPengembalian(Borrowing $borrowing)
+    {
+        $borrowing->update([
+            'status' => Borrowing::STATUS_DIKEMBALIKAN,
+            'tanggal_dikembalikan' => Carbon::today(),
+        ]);
+    }
+
+    // ─── RIWAYAT USER
     public function riwayat()
     {
         $borrowings = Borrowing::where('user_id', Auth::id())
@@ -90,7 +110,11 @@ class BorrowingController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('borrowings.riwayat', compact('borrowings'));
-    }
+        $nearDue = Borrowing::where('user_id', Auth::id())
+            ->where('status', Borrowing::STATUS_DIPINJAM)
+            ->whereDate('tanggal_kembali', '<=', Carbon::today()->addDays(3))
+            ->get();
 
+        return view('borrowings.riwayat', compact('borrowings', 'nearDue'));
+    }
 }

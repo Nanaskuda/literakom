@@ -11,7 +11,7 @@
             <div class="flex-1">
                 <h2 class="grid flex-1 text-base font-semibold leading-6 text-gray-950 dark:text-white">
                     {{-- Ganti teks "Welcome" di sini --}}
-                    Selamat Datang di DigiLitera,
+                    Selamat Datang di Literakom,
                 </h2>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400">

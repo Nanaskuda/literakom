@@ -44,119 +44,104 @@
 
                 {{-- Action buttons --}}
                 <div class="space-y-3 max-w-[280px] mx-auto lg:mx-0">
+{{-- Error Message --}}
+@if ($errors->any())
+    <div class="mb-3 text-sm text-red-500">
+        @foreach ($errors->all() as $error)
+            <div>{{ $error }}</div>
+        @endforeach
+    </div>
+@endif
 
-                    @auth
-                        @if ($userHasBorrowed)
-                            {{-- Sudah dipinjam --}}
-                            @php
-                                $activeLoan = $book->borrowings()
-                                    ->where('user_id', auth()->id())
-                                    ->where('status', 'dipinjam')
-                                    ->first();
-                            @endphp
-                            <div class="w-full text-center px-5 py-3.5 rounded-2xl text-sm font-semibold"
-                                 style="background:rgba(26,46,26,0.07); color:var(--forest);
-                                        border:1.5px solid rgba(26,46,26,0.15);">
-                                ✓ Sedang Kamu Pinjam
-                                @if ($activeLoan)
-                                    <div class="text-xs font-normal mt-1" style="color:var(--muted);">
-                                        Kembali:
-                                        <span class="{{ $activeLoan->isTerlambat() ? 'text-red-500 font-semibold' : '' }}">
-                                            {{ $activeLoan->tanggal_kembali->format('d M Y') }}
-                                        </span>
-                                        @if ($activeLoan->isTerlambat())
-                                            <span class="text-red-500 font-semibold">(Terlambat!)</span>
-                                        @elseif ($activeLoan->sisaHari() <= 2)
-                                            <span class="text-orange-500">({{ $activeLoan->sisaHari() }} hari lagi)</span>
-                                        @endif
-                                    </div>
-                                @endif
-                            </div>
+@auth
+    @if ($userHasBorrowed)
+        @php
+            $activeLoan = $book->borrowings()
+                ->where('user_id', auth()->id())
+                ->where('status', 'dipinjam')
+                ->first();
+        @endphp
 
-                            @if ($activeLoan)
-                                <form method="POST" action="{{ route('borrowings.kembalikan', $activeLoan) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit"
-                                            class="w-full px-5 py-3.5 rounded-2xl text-sm font-bold transition hover:opacity-90"
-                                            style="background:var(--forest); color:white;">
-                                        Kembalikan Buku
-                                    </button>
-                                </form>
-                            @endif
+        {{-- STATUS --}}
+        <div class="w-full text-center px-5 py-3.5 rounded-2xl text-sm font-semibold"
+             style="background:rgba(26,46,26,0.07); color:var(--forest);
+                    border:1.5px solid rgba(26,46,26,0.15);">
+            ✓ Sedang Kamu Pinjam
 
-                        @elseif ($book->isAvailable())
-                            {{-- Bisa dipinjam --}}
-                            <form method="POST" action="{{ route('borrowings.store', $book) }}">
-                                @csrf
-                                <button type="submit"
-                                        class="w-full flex items-center justify-center gap-2.5 px-5 py-4 rounded-2xl
-                                               text-sm font-bold transition hover:scale-[1.02] hover:shadow-xl"
-                                        style="background:var(--copper); color:var(--forest);
-                                               box-shadow:0 6px 24px rgba(193,127,58,0.3);">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                    </svg>
-                                    Pinjam Buku Ini
-                                </button>
-                            </form>
-                        @else
-                            {{-- Stok habis --}}
-                            <div class="w-full text-center px-5 py-4 rounded-2xl text-sm font-semibold"
-                                 style="background:rgba(239,68,68,0.08); color:#dc2626;
-                                        border:1.5px solid rgba(239,68,68,0.2);">
-                                📵 Stok Habis — Tidak Tersedia
-                            </div>
-                        @endif
+            @if ($activeLoan)
+                <div class="text-xs mt-1" style="color:var(--muted);">
+                    Kembali:
+                    <span class="{{ $activeLoan->isTerlambat() ? 'text-red-500 font-semibold' : '' }}">
+                        {{ optional($activeLoan->tanggal_kembali)->format('d M Y') }}
+                    </span>
 
-                        {{-- Favorit --}}
-                        <form method="POST" action="{{ route('favorites.toggle', $book) }}">
-                            @csrf
-                            <button type="submit"
-                                    class="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-2xl
-                                           text-sm font-semibold transition hover:scale-[1.01]"
-                                    style="background:{{ $userHasFavorited ? 'rgba(239,68,68,0.08)' : 'white' }};
-                                           color:{{ $userHasFavorited ? '#dc2626' : 'var(--muted)' }};
-                                           border:1.5px solid {{ $userHasFavorited ? 'rgba(239,68,68,0.25)' : 'rgba(26,46,26,0.12)' }};">
-                                <svg class="w-5 h-5"
-                                     fill="{{ $userHasFavorited ? 'currentColor' : 'none' }}"
-                                     stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                                </svg>
-                                {{ $userHasFavorited ? 'Hapus dari Favorit' : 'Simpan ke Favorit' }}
-                            </button>
-                        </form>
+                    @if ($activeLoan->isTerlambat())
+                        <span class="text-red-500">(Terlambat!)</span>
+                    @elseif ($activeLoan->sisaHari() !== null && $activeLoan->sisaHari() <= 2)
+                        <span class="text-orange-500">
+                            ({{ $activeLoan->sisaHari() }} hari lagi)
+                        </span>
+                    @endif
+                </div>
+            @endif
+        </div>
 
-                        {{-- E-Book --}}
-                        @if ($book->ebook)
-                            <button onclick="document.getElementById('ebookModal').classList.remove('hidden')"
-                                    class="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-2xl
-                                           text-sm font-semibold transition hover:scale-[1.01]"
-                                    style="background:white; color:var(--forest);
-                                           border:1.5px solid rgba(26,46,26,0.15);">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                </svg>
-                                Baca E-Book
-                            </button>
-                        @endif
+        {{-- AJUKAN PENGEMBALIAN --}}
+        @if ($activeLoan)
+            <form method="POST" action="{{ route('borrowings.ajukanKembali', $activeLoan) }}">
+                @csrf
+                @method('PATCH')
 
-                    @else
-                        {{-- Guest --}}
-                        <a href="{{ route('filament.admin.auth.login') }}"
-                           class="block w-full text-center px-5 py-4 rounded-2xl text-sm font-bold transition hover:opacity-90"
-                           style="background:var(--copper); color:var(--forest);
-                                  box-shadow:0 6px 24px rgba(193,127,58,0.3);">
-                            Login untuk Meminjam
-                        </a>
-                        {{-- <a href="{{ route('register') }}"
-                           class="block w-full text-center px-5 py-3.5 rounded-2xl text-sm font-semibold transition hover:bg-gray-50"
-                           style="background:white; color:var(--forest);
-                                  border:1.5px solid rgba(26,46,26,0.15);">
-                            Belum punya akun? Daftar
-                        </a> --}}
-                    @endauth
+                <button type="submit"
+                        class="w-full px-5 py-3.5 rounded-2xl text-sm font-bold"
+                        style="background:var(--forest); color:white;">
+                    Ajukan Pengembalian
+                </button>
+            </form>
+        @endif
+
+    @elseif ($book->isAvailable())
+        {{-- PINJAM --}}
+        <form method="POST" action="{{ route('borrowings.store', $book) }}">
+            @csrf
+
+            {{-- FIX: WAJIB ADA --}}
+            <input type="hidden" name="durasi" value="7">
+
+            <button type="submit"
+                    class="w-full flex items-center justify-center gap-2 px-5 py-4 rounded-2xl
+                           text-sm font-bold transition hover:scale-[1.02]"
+                    style="background:var(--copper); color:var(--forest);">
+                Pinjam Buku Ini
+            </button>
+        </form>
+
+    @else
+        {{-- STOK HABIS --}}
+        <div class="w-full text-center px-5 py-4 rounded-2xl text-sm font-semibold"
+             style="background:rgba(239,68,68,0.08); color:#dc2626;">
+            📵 Stok Habis — Tidak Tersedia
+        </div>
+    @endif
+
+    {{-- FAVORIT --}}
+    <form method="POST" action="{{ route('favorites.toggle', $book) }}">
+        @csrf
+        <button type="submit"
+                class="w-full px-5 py-3.5 rounded-2xl text-sm font-semibold"
+                style="background:white; border:1px solid #ddd;">
+            {{ $userHasFavorited ? 'Hapus dari Favorit' : 'Simpan ke Favorit' }}
+        </button>
+    </form>
+
+@else
+    {{-- GUEST --}}
+    <a href="{{ route('filament.admin.auth.login') }}"
+       class="block w-full text-center px-5 py-4 rounded-2xl text-sm font-bold"
+       style="background:var(--copper); color:var(--forest);">
+        Login untuk Meminjam
+    </a>
+@endauth
                 </div>
             </div>
 
@@ -376,7 +361,7 @@
 {{-- ════ E-BOOK MODAL ════ --}}
 @if ($book->ebook)
     <div id="ebookModal"
-         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+         class="hidden fixed inset-0 z-50 lg:flex items-center justify-center p-4"
          style="background:rgba(0,0,0,0.85);"
          onclick="if(event.target===this)this.classList.add('hidden')">
         <div class="bg-white rounded-3xl w-full max-w-5xl flex flex-col overflow-hidden shadow-2xl"

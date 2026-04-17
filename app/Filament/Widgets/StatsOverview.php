@@ -5,6 +5,9 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Borrowing;
+use App\Models\User;
+use App\Models\Book;
 
 class StatsOverview extends BaseWidget
 {
@@ -23,26 +26,33 @@ class StatsOverview extends BaseWidget
         ];
     });
 
+        $pendingCount = Borrowing::pending()->count();
+
         return [
-Stat::make('Total Buku', $stats['books'])
-            ->description('Koleksi aktif')
-            ->descriptionIcon('heroicon-m-book-open')
-            ->color('primary'),
+            Stat::make('Menunggu Persetujuan', $pendingCount)
+                ->description($pendingCount > 0 ? 'Perlu ditinjau segera' : 'Tidak ada pengajuan baru')
+                ->descriptionIcon('heroicon-m-clock')
+                ->color($pendingCount > 0 ? 'warning' : 'gray'),
 
-        Stat::make('Total Member', $stats['members'])
-            ->description('Member aktif')
-            ->descriptionIcon('heroicon-m-users')
-            ->color('success'),
+            Stat::make('Sedang Dipinjam', Borrowing::dipinjam()->count())
+                ->description('Buku belum dikembalikan')
+                ->descriptionIcon('heroicon-m-book-open')
+                ->color('warning'),
 
-        Stat::make('Sedang Dipinjam', $stats['borrowed'])
-            ->description('Belum kembali')
-            ->descriptionIcon('heroicon-m-arrow-path')
-            ->color('warning'),
+            Stat::make('Terlambat', Borrowing::terlambat()->count())
+                ->description('Melewati batas pengembalian')
+                ->descriptionIcon('heroicon-m-exclamation-triangle')
+                ->color('danger'),
 
-        Stat::make('Terlambat', $stats['late'])
-            ->description('Melebihi batas')
-            ->descriptionIcon('heroicon-m-exclamation-triangle')
-            ->color('danger'),
-            ];
+            Stat::make('Total Buku', Book::where('is_active', true)->count())
+                ->description('Koleksi aktif perpustakaan')
+                ->descriptionIcon('heroicon-m-book-open')
+                ->color('primary'),
+
+            Stat::make('Member Aktif', User::where('role', 'member')->where('is_active', true)->count())
+                ->description('Member terdaftar')
+                ->descriptionIcon('heroicon-m-users')
+                ->color('info'),
+        ];
     }
 }
